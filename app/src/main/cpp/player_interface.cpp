@@ -83,9 +83,7 @@ extern "C" JNIEXPORT jint
         JNIEnv *env,
         jobject /* this */)
 {
-    //TODO Return duration as int in ms
-    //return player->total_time;
-    return 1;
+    return player->total_time;
 }
 
 extern "C" JNIEXPORT jint
@@ -94,7 +92,5 @@ extern "C" JNIEXPORT jint
         JNIEnv *env,
         jobject /* this */)
 {
-    //return player->current_time;
-    //TODO Return current_time as int in ms
-    return 1;
+    return player->current_time;
 }

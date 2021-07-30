@@ -92,8 +92,10 @@ AVFrame *AudioPlayer::get()
             if (queue.size() < 5)
                 pthread_cond_signal(&not_full);
             pthread_mutex_unlock(&mutex);
-            current_time = av_q2d(time_base) * out->pts;
-            LOGI("Get frame:%d,time:%lf", queue.size(), current_time);
+            // Get the current time in msec
+            current_time = av_rescale(out->pts,time_base.num,time_base.den);
+            current_time *= 1000;
+            LOGI("Get frame:%d,time:%d", queue.size(), current_time);
             return out;
         }
     }
@@ -174,7 +176,7 @@ void AudioPlayer::pause()
 
 int AudioPlayer::createPlayer()
 {
-    //eate player
+    //Create player
     //Create and initialize the engine object
     //    SLObjectItf engineObject;
     slCreateEngine(&engineObject, 0, NULL, 0, NULL, NULL);
@@ -299,8 +301,11 @@ int AudioPlayer::initCodecs(const char *path)
     max_audio_frame_size = in_sample_rate * in_ch_layout_nb;
     time_base = fmt_ctx->streams[stream_index]->time_base;
     int64_t duration = stream->duration;
-    total_time = av_q2d(stream->time_base) * duration;
-    LOGI("Total time:%lf", total_time);
+
+    // Get the total time in msec
+    total_time = av_rescale(duration,time_base.num,time_base.den);
+    total_time *= 1000;
+    LOGI("Total time:%d", total_time);
 
     if (avcodec_open2(codec_ctx, codec, NULL) < 0)
     {

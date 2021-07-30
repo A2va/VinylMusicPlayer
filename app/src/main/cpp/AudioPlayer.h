@@ -47,8 +47,8 @@ public:
 
 // Progress related
     AVRational time_base;           //Scale, used to calculate progress
-    double total_time;              //Total time (seconds)
-    double current_time = 0;          //Current progress
+    jint total_time;              //Total time (msec)
+    jint current_time = 0;          //Current progress in msec
     int isPlay = 0;                 //Playing status 1: Playing
 
 //Multithreading
