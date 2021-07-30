@@ -205,7 +205,6 @@ int AudioPlayer::createPlayer()
     //Output pipeline
     SLDataLocator_OutputMix outputMix = {SL_DATALOCATOR_OUTPUTMIX, mixObject};
     SLDataSink audioSnk = {&outputMix, NULL};
-
     const SLInterfaceID ids[3] = {SL_IID_BUFFERQUEUE, SL_IID_EFFECTSEND, SL_IID_VOLUME};
     const SLboolean req[3] = {SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE, SL_BOOLEAN_TRUE};
     //Through the engine interface, create and initialize the player object
@@ -222,6 +221,10 @@ int AudioPlayer::createPlayer()
 
     //Register buffer callback
     (*bufferQueueItf)->RegisterCallback(bufferQueueItf, _playCallback, this);
+
+   // Get Volume interface
+    (*playerObject)->GetInterface(playerObject,SL_IID_VOLUME,&volumeItf);
+
     return 1;
 }
 
@@ -351,4 +354,13 @@ void AudioPlayer::release()
     avcodec_close(codec_ctx);
     avformat_close_input(&fmt_ctx);
     LOGI("Release...");
+}
+void AudioPlayer::setVolume(float volume)
+{
+    // volume in float are 0.0 to 1.0 value
+    SLmillibel  maxVolume;
+    (*volumeItf)->GetMaxVolumeLevel(volumeItf, &maxVolume);
+    // TODO Rescale volume between 0 and maxVolume
+    (*volumeItf)->SetVolumeLevel(volumeItf, volume);
+
 }

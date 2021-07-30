@@ -38,6 +38,7 @@ extern "C" JNIEXPORT void
         JNIEnv *env,
         jobject /* this */, jfloat leftVolume, jfloat rightVolume)
 {
+    player->setVolume(leftVolume);
 }
 
 extern "C" JNIEXPORT void

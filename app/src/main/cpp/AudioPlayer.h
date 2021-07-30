@@ -63,6 +63,7 @@ public:
     SLObjectItf mixObject;          //Output mixing object
     SLObjectItf playerObject;       //player object
     SLPlayItf playItf;              //Player interface
+    SLVolumeItf volumeItf;          //Volume interface
     SLAndroidSimpleBufferQueueItf bufferQueueItf;   //Buffer interface
 
     void play();
@@ -84,6 +85,8 @@ public:
     void seek(double secs);
 
     void release();
+
+    void setVolume(float volume);
 
 };
 
