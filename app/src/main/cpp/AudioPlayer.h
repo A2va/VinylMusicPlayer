@@ -16,7 +16,7 @@ extern "C" {
 #define LOGE(FORMAT, ...) __android_log_print(ANDROID_LOG_ERROR,"FFmpegAudioPlayer",FORMAT,##__VA_ARGS__);
 
 class AudioPlayer {
-public:
+ private:
     AudioPlayer(const char *path);
 
     jobject jobj;
@@ -66,6 +66,7 @@ public:
     SLVolumeItf volumeItf;          //Volume interface
     SLAndroidSimpleBufferQueueItf bufferQueueItf;   //Buffer interface
 
+ public:
     void play();
 
     void pause();
@@ -88,6 +89,8 @@ public:
 
     void setVolume(float volume);
 
+    jint position(){ return static_cast<jint>(current_time)};
+    jint duration(){return static_cast<jint>(total_time)};
 };
 
 }

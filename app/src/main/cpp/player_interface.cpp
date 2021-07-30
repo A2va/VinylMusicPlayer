@@ -83,7 +83,7 @@ extern "C" JNIEXPORT jint
         JNIEnv *env,
         jobject /* this */)
 {
-    return player->total_time;
+    return player->duration();
 }
 
 extern "C" JNIEXPORT jint
@@ -92,5 +92,5 @@ extern "C" JNIEXPORT jint
         JNIEnv *env,
         jobject /* this */)
 {
-    return player->current_time;
+    return player->position();
 }
