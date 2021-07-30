@@ -8,7 +8,7 @@ static AudioPlayer *player;
 
 extern "C" JNIEXPORT void
     JNICALL
-    Java_com_poupa_vinylmusicplayer_service_MediaPlayer_init(
+    Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_init(
         JNIEnv *env,
         jobject thiz, jstring path)
 {
@@ -34,7 +34,7 @@ Java_io_github_iamyours_ffmpegaudioplayer_FFmpegAudioPlayer_callback(
 
 extern "C" JNIEXPORT void
     JNICALL
-    Java_com_poupa_vinylmusicplayer_service_MediaPlayer_setVolume(
+    Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_setVolume(
         JNIEnv *env,
         jobject /* this */, jfloat leftVolume, jfloat rightVolume)
 {
@@ -43,7 +43,7 @@ extern "C" JNIEXPORT void
 
 extern "C" JNIEXPORT void
     JNICALL
-    Java_com_poupa_vinylmusicplayer_service_MediaPlayer_play(
+    Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_play(
         JNIEnv *env,
         jobject /* this */)
 {
@@ -52,7 +52,7 @@ extern "C" JNIEXPORT void
 
 extern "C" JNIEXPORT void
     JNICALL
-    Java_com_poupa_vinylmusicplayer_service_MediaPlayer_pause(
+    Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_pause(
         JNIEnv *env,
         jobject /* this */)
 {
@@ -61,7 +61,7 @@ extern "C" JNIEXPORT void
 
 extern "C" JNIEXPORT void
     JNICALL
-    Java_com_poupa_vinylmusicplayer_service_MediaPlayer_release(
+    Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_release(
         JNIEnv *env,
         jobject /* this */)
 {
@@ -69,7 +69,7 @@ extern "C" JNIEXPORT void
 }
 extern "C" JNIEXPORT void
     JNICALL
-    Java_com_poupa_vinylmusicplayer_service_MediaPlayer_seekTo(
+    Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_seekTo(
         JNIEnv *env,
         jobject /* this */, jint msecs)
 {
@@ -79,7 +79,7 @@ extern "C" JNIEXPORT void
 
 extern "C" JNIEXPORT jint
     JNICALL
-    Java_com_poupa_vinylmusicplayer_service_MediaPlayer_duration(
+    Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_duration(
         JNIEnv *env,
         jobject /* this */)
 {
@@ -90,7 +90,7 @@ extern "C" JNIEXPORT jint
 
 extern "C" JNIEXPORT jint
     JNICALL
-    Java_com_poupa_vinylmusicplayer_service_MediaPlayer_position(
+    Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_position(
         JNIEnv *env,
         jobject /* this */)
 {
