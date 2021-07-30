@@ -45,3 +45,6 @@ tags
 .DS_Store
 
 app/release/
+app/.cxx
+
+/ffmpeg-android-maker

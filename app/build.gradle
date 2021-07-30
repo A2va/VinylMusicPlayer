@@ -17,6 +17,12 @@ android {
 
         multiDexEnabled true
     }
+    ndkVersion "21.4.7075529"
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
     buildTypes {
         release {
             minifyEnabled true
