@@ -222,7 +222,7 @@ int AudioPlayer::createPlayer()
     //Register buffer callback
     (*bufferQueueItf)->RegisterCallback(bufferQueueItf, _playCallback, this);
 
-   // Get Volume interface
+    // Get Volume interface
     (*playerObject)->GetInterface(playerObject,SL_IID_VOLUME,&volumeItf);
 
     return 1;
@@ -360,7 +360,6 @@ void AudioPlayer::setVolume(float volume)
     // volume in float are 0.0 to 1.0 value
     SLmillibel  maxVolume;
     (*volumeItf)->GetMaxVolumeLevel(volumeItf, &maxVolume);
-    // TODO Rescale volume between 0 and maxVolume
-    (*volumeItf)->SetVolumeLevel(volumeItf, volume);
+    (*volumeItf)->SetVolumeLevel(volumeItf, static_cast<SLmillibel>(volume*maxVolume));
 
 }
