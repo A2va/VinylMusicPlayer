@@ -82,7 +82,7 @@ public:
 
     int put(AVFrame *frame);
 
-    void seek(double secs);
+    void seek(jint msecs);
 
     void release();
 

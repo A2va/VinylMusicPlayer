@@ -310,13 +310,14 @@ int AudioPlayer::initCodecs(const char *path)
     return 1;
 }
 
-void AudioPlayer::seek(double secs)
+void AudioPlayer::seek(jint msecs)
 {
     pthread_mutex_lock(&mutex);
+    int64_t timestamp = av_rescale(msecs,time_base.num,time_base.den);
+    timestamp /= 1000;
+    av_seek_frame(fmt_ctx, stream_index, timestamp, AVSEEK_FLAG_ANY);
 
-    av_seek_frame(fmt_ctx, stream_index, (int64_t)(secs / av_q2d(time_base)), AVSEEK_FLAG_ANY);
-
-    current_time = secs;
+    current_time = msecs;
     queue.clear();
     pthread_cond_signal(&not_full);
     pthread_mutex_unlock(&mutex);
