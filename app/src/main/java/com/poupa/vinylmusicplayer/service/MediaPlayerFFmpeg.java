@@ -26,8 +26,11 @@ public class MediaPlayerFFmpeg extends android.media.MediaPlayer {
 
     @Override
     public void reset() {
-        //
+        nativereset();
     }
+
+    //@Override
+    private native void nativereset();
 
     static {
         // Load ffmpeg and native library

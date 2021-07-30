@@ -17,7 +17,6 @@ extern "C" {
 
 class AudioPlayer {
  private:
-    AudioPlayer(const char *path);
 
     jobject jobj;
     JNIEnv *env;
@@ -67,6 +66,7 @@ class AudioPlayer {
     SLAndroidSimpleBufferQueueItf bufferQueueItf;   //Buffer interface
 
  public:
+  	AudioPlayer(const char *path);
     void play();
 
     void pause();

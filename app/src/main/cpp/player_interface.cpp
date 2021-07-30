@@ -66,6 +66,7 @@ extern "C" JNIEXPORT void
         jobject /* this */)
 {
     player->release();
+    delete player;
 }
 extern "C" JNIEXPORT void
     JNICALL
@@ -94,3 +95,13 @@ extern "C" JNIEXPORT jint
 {
     return player->position();
 }
+
+extern "C" JNIEXPORT jint
+JNICALL
+Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_nativereset(
+    JNIEnv *env,
+    jobject /* this */)
+{
+    player->release();
+}
+
