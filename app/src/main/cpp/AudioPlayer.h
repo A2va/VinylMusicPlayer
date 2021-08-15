@@ -41,12 +41,6 @@ class AudioPlayer {
     int in_ch_layout_nb;           //Number of input channels, used with swr_ctx
     enum AVSampleFormat in_sample_fmt; //Input audio sample format
 
-    uint64_t out_ch_layout;
-    int out_sample_rate;            //Sampling Rate
-    int out_ch_layout_nb;           //Number of output channels, used with swr_ctx
-    int max_audio_frame_size;       //Maximum buffer data size
-    enum AVSampleFormat out_sample_fmt; //Output audio sample format
-
 // Progress related
     AVRational time_base;           //Scale, used to calculate progress
     jint total_time;              //Total time (msec)
@@ -69,6 +63,13 @@ class AudioPlayer {
     SLAndroidSimpleBufferQueueItf bufferQueueItf;   //Buffer interface
 
  public:
+
+	uint64_t out_ch_layout;
+	int out_sample_rate;            //Sampling Rate
+	int out_ch_layout_nb;           //Number of output channels, used with swr_ctx
+	int max_audio_frame_size;       //Maximum buffer data size
+	enum AVSampleFormat out_sample_fmt; //Output audio sample format
+
   	AudioPlayer();
     void play();
 
@@ -81,6 +82,7 @@ class AudioPlayer {
     int createPlayer();                     //Create player
     int initCodecs(const char *path);         //Initialize the decoder
     int initSwrContext();                   //Initialize SwrContext
+    SwrContext* getSwrContext(){ return swr_ctx;};
 
     AVFrame *get();
 
@@ -92,12 +94,18 @@ class AudioPlayer {
 
     void setVolume(float volume);
 
-    jint position(){ return static_cast<jint>(current_time)};
-    jint duration(){return static_cast<jint>(total_time)};
+    jint position(){ return static_cast<jint>(current_time);};
+    jint duration(){ return static_cast<jint>(total_time);};
 
-    setDataSource(const char *srcUrl, const char *headers);
-    setDataSource(int fd, int64_t offset, int64_t length);
-    setDataSource(jstring jpath);
+    JNIEnv* getEnv(){return env;};
+    void setEnv(JNIEnv *env){this->env = env;};
+
+    jobject getObject(){return jobj;};
+    void setObject(jobject object){ this->jobj = object;};
+
+  	void setDataSource(const char *srcUrl, const char *headers);
+    void setDataSource(int fd, int64_t offset, int64_t length);
+    void setDataSource(jstring jpath);
 };
 
 }

@@ -13,7 +13,7 @@ void _playCallback(SLAndroidSimpleBufferQueueItf bq, void *context)
         if (size > 0)
         {
             uint8_t *outBuffer = (uint8_t *)av_malloc(player->max_audio_frame_size);
-            swr_convert(player->swr_ctx, &outBuffer, player->max_audio_frame_size,
+            swr_convert(player->getSwrContext(), &outBuffer, player->max_audio_frame_size,
                         (const uint8_t **)frame->data, frame->nb_samples);
             (*bq)->Enqueue(bq, outBuffer, size);
         }
@@ -32,11 +32,6 @@ void *_play(void *args)
     AudioPlayer *p = (AudioPlayer *)args;
     p->setPlaying();
     pthread_exit(0);
-}
-
-AudioPlayer::init(const char *path)
-{
-    initCodecs(path);
 }
 
 AudioPlayer::AudioPlayer()
@@ -373,22 +368,22 @@ void AudioPlayer::setVolume(float volume)
 
 }
 
-AudioPlayer::setDataSource(jstring jpath)
+void AudioPlayer::setDataSource(jstring jpath)
 {
     const char *path = env->GetStringUTFChars(jpath, nullptr);
     initCodecs(path);
-    env->ReleaseStringUTFChars(path, jpath);
+    env->ReleaseStringUTFChars(jpath, path);
 
 }
 
 //TODO
 // Headers implementation https://android.googlesource.com/platform/frameworks/base/+/56a2301/media/jni/android_media_MediaPlayer.cpp#179
-AudioPlayer::setDataSource(const char *srcUrl, const char *headers)
+void AudioPlayer::setDataSource(const char *srcUrl, const char *headers)
 {
 
 
 }
-AudioPlayer::setDataSource(int fd, int64_t offset, int64_t length)
+void AudioPlayer::setDataSource(int fd, int64_t offset, int64_t length)
 {
 
 }

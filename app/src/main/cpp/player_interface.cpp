@@ -3,12 +3,34 @@
 //
 #include "AudioPlayer.h"
 #include <jni.h>
+#ifndef NELEM
+# define NELEM(x) ((int) (sizeof(x) / sizeof((x)[0])))
+#endif
 
 static AudioPlayer *player;
 
 // Native code of MediaPlayer : https://android.googlesource.com/platform/frameworks/base/+/56a2301/media/jni/android_media_MediaPlayer.cpp
 
-    const char *cFilePath = env->GetStringUTFChars(path, nullptr);
+/*
+ * Register several native methods for one class.
+ */
+// Use Jni Load for register method
+
+static int registerNativeMethods(JNIEnv* env, const char* className,
+								 JNINativeMethod* gMethods, int numMethods)
+{
+  jclass clazz;
+  clazz = env->FindClass(className);
+  if (clazz == NULL) {
+	LOGE("Native registration unable to find class '%s'", className);
+	return JNI_FALSE;
+  }
+  if (env->RegisterNatives(clazz, gMethods, numMethods) < 0) {
+	LOGE("RegisterNatives failed for '%s'", className);
+	return JNI_FALSE;
+  }
+  return JNI_TRUE;
+}
 
 extern "C" JNIEXPORT void
 JNICALL
@@ -16,10 +38,10 @@ Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_alloc(
     JNIEnv *env,
     jobject thiz)
 {
-    player->env = env;
-    player->jobj = thiz;
+    player = new AudioPlayer();
+    player->setEnv(env);
+    player->setObject(thiz);
 }
-
 
 /*extern "C" JNIEXPORT void
 JNICALL
@@ -102,6 +124,7 @@ Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_nativereset(
     jobject /* this */)
 {
     player->release();
+
 }
 
 
