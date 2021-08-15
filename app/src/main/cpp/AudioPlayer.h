@@ -15,8 +15,11 @@ extern "C" {
 #define LOGI(FORMAT, ...) __android_log_print(ANDROID_LOG_INFO,"FFmpegAudioPlayer",FORMAT,##__VA_ARGS__);
 #define LOGE(FORMAT, ...) __android_log_print(ANDROID_LOG_ERROR,"FFmpegAudioPlayer",FORMAT,##__VA_ARGS__);
 
+//TODO Use jni exceptions
 class AudioPlayer {
  private:
+
+	jstring path;
 
     jobject jobj;
     JNIEnv *env;
@@ -66,7 +69,7 @@ class AudioPlayer {
     SLAndroidSimpleBufferQueueItf bufferQueueItf;   //Buffer interface
 
  public:
-  	AudioPlayer(const char *path);
+  	AudioPlayer();
     void play();
 
     void pause();
@@ -91,6 +94,10 @@ class AudioPlayer {
 
     jint position(){ return static_cast<jint>(current_time)};
     jint duration(){return static_cast<jint>(total_time)};
+
+    setDataSource(const char *srcUrl, const char *headers);
+    setDataSource(int fd, int64_t offset, int64_t length);
+    setDataSource(jstring jpath);
 };
 
 }

@@ -6,21 +6,20 @@
 
 static AudioPlayer *player;
 
-extern "C" JNIEXPORT void
-    JNICALL
-    Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_init(
-        JNIEnv *env,
-        jobject thiz, jstring path)
-{
+// Native code of MediaPlayer : https://android.googlesource.com/platform/frameworks/base/+/56a2301/media/jni/android_media_MediaPlayer.cpp
 
     const char *cFilePath = env->GetStringUTFChars(path, nullptr);
 
-    player = new AudioPlayer(cFilePath);
+extern "C" JNIEXPORT void
+JNICALL
+Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_alloc(
+    JNIEnv *env,
+    jobject thiz)
+{
     player->env = env;
     player->jobj = thiz;
-
-    env->ReleaseStringUTFChars(path, cFilePath);
 }
+
 
 /*extern "C" JNIEXPORT void
 JNICALL
@@ -96,7 +95,7 @@ extern "C" JNIEXPORT jint
     return player->position();
 }
 
-extern "C" JNIEXPORT jint
+extern "C" JNIEXPORT void
 JNICALL
 Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_nativereset(
     JNIEnv *env,
@@ -104,4 +103,5 @@ Java_com_poupa_vinylmusicplayer_service_MediaPlayerFFmpeg_nativereset(
 {
     player->release();
 }
+
 

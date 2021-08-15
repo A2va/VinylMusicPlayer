@@ -34,14 +34,17 @@ void *_play(void *args)
     pthread_exit(0);
 }
 
-AudioPlayer::AudioPlayer(const char *path)
+AudioPlayer::init(const char *path)
 {
+    initCodecs(path);
+}
 
+AudioPlayer::AudioPlayer()
+{
     pthread_mutex_init(&mutex, NULL);
     pthread_cond_init(&not_full, NULL);
     pthread_cond_init(&not_empty, NULL);
 
-    initCodecs(path);
     initSwrContext();
     createPlayer();
 }
@@ -367,5 +370,25 @@ void AudioPlayer::setVolume(float volume)
     SLmillibel  maxVolume;
     (*volumeItf)->GetMaxVolumeLevel(volumeItf, &maxVolume);
     (*volumeItf)->SetVolumeLevel(volumeItf, static_cast<SLmillibel>(volume*maxVolume));
+
+}
+
+AudioPlayer::setDataSource(jstring jpath)
+{
+    const char *path = env->GetStringUTFChars(jpath, nullptr);
+    initCodecs(path);
+    env->ReleaseStringUTFChars(path, jpath);
+
+}
+
+//TODO
+// Headers implementation https://android.googlesource.com/platform/frameworks/base/+/56a2301/media/jni/android_media_MediaPlayer.cpp#179
+AudioPlayer::setDataSource(const char *srcUrl, const char *headers)
+{
+
+
+}
+AudioPlayer::setDataSource(int fd, int64_t offset, int64_t length)
+{
 
 }
