@@ -34,4 +34,10 @@ public class MediaPlayerVLC extends android.media.MediaPlayer {
      setOnErrorListener(): todo
 
     */
+    public void seekTo(long msec) throws IllegalStateException{
+         if(mMediaPlayer.setTime(msec) == -1){
+             final String msg = "No media has been setted";
+             throw new IllegalStateException(msg);
+         }
+    }
 }
