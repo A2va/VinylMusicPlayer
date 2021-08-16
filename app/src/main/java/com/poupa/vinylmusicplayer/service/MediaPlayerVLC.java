@@ -40,4 +40,17 @@ public class MediaPlayerVLC extends android.media.MediaPlayer {
              throw new IllegalStateException(msg);
          }
     }
+
+    public void release() {
+        mMediaPlayer.release();
+        mMedia.release();
+        mLibVLC.release();
+
+        mMediaPlayer = null;
+        mMedia = null;
+
+        mOnCompletionListener = null;
+        mOnErrorListener = null;
+
+    }
 }
