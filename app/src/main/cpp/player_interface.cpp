@@ -3,9 +3,12 @@
 //
 #include "AudioPlayer.h"
 #include <jni.h>
+#include <binder_parcel.h>
+//#include <binder/Parcel.h>
 #ifndef NELEM
 # define NELEM(x) ((int) (sizeof(x) / sizeof((x)[0])))
 #endif
+
 
 static AudioPlayer *player;
 

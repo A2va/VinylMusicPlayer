@@ -1,7 +1,7 @@
 package com.poupa.vinylmusicplayer.service;
 
-import android.annotation.NonNull;
-import android.annotation.Nullable;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.Context;

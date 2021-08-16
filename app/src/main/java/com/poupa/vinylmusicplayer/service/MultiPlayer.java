@@ -75,7 +75,7 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
             player.reset();
             player.setOnPreparedListener(null);
             if (path.startsWith("content://")) {
-                player.setDataSource(context, Uri.parse(path));
+                //player.setDataSource(context, Uri.parse(path));
             } else {
                 player.setDataSource(path);
             }
