@@ -93,6 +93,11 @@ public class MediaPlayerVLC extends android.media.MediaPlayer{
          }
     }
 
+    public void reset(){
+        mMedia.release();
+        mMedia = null;
+    }
+
     public void release() {
 
         if(mIsInitialized) {
