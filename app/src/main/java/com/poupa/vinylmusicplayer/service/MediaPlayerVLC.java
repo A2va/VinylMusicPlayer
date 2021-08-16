@@ -34,6 +34,14 @@ public class MediaPlayerVLC extends android.media.MediaPlayer {
      setOnErrorListener(): todo
 
     */
+
+    void initialization(Context context){
+        mContext = context;
+        mLibVLC = new LibVLC(context);
+        mMediaPlayer = new MediaPlayer(mLibVLC);
+
+        mIsInitialized = true;
+    }
     public void seekTo(long msec) throws IllegalStateException{
          if(mMediaPlayer.setTime(msec) == -1){
              final String msg = "No media has been setted";
@@ -42,9 +50,12 @@ public class MediaPlayerVLC extends android.media.MediaPlayer {
     }
 
     public void release() {
-        mMediaPlayer.release();
-        mMedia.release();
-        mLibVLC.release();
+
+        if(mIsInitialized) {
+            mMediaPlayer.release();
+            mMedia.release();
+            mLibVLC.release();
+        }
 
         mMediaPlayer = null;
         mMedia = null;
@@ -53,4 +64,5 @@ public class MediaPlayerVLC extends android.media.MediaPlayer {
         mOnErrorListener = null;
 
     }
+
 }
