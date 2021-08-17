@@ -3,19 +3,35 @@ package com.poupa.vinylmusicplayer.service;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.LibVLC;
+import org.videolan.libvlc.MediaFactory;
 
-
+import android.content.ContentProvider;
+import android.content.ContentResolver;
 import android.content.Context;
 
-import android.media.MediaPlayer.OnErrorListener;
+//import android.media.MediaPlayer.OnErrorListener;
+import android.content.res.AssetFileDescriptor;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.net.Uri;
+import android.util.Log;
 
-public class MediaPlayerVLC extends android.media.MediaPlayer{
+import java.util.ArrayList;
+
+public class MediaPlayerVLC{
+    public interface OnErrorListener{
+        boolean onError(MediaPlayerVLC mp, int what, int extra);
+    }
+    public interface OnCompletionListener{
+        void onCompletion(MediaPlayerVLC mp);
+    }
+
     private LibVLC mLibVLC = null;
     private MediaPlayer mMediaPlayer = null;
     private Media mMedia;
+    private boolean misPaused = false;
 
     private OnErrorListener mOnErrorListener;
+
     private OnCompletionListener mOnCompletionListener;
 
 
@@ -45,41 +61,55 @@ public class MediaPlayerVLC extends android.media.MediaPlayer{
     void setContext(Context context){
         mContext = context;
         // create libvlc and a mediaplayer object from context
-        mLibVLC = new LibVLC(context);
+        final ArrayList<String> args = new ArrayList<>();
+        args.add("-vvv");
+
+        mLibVLC = new LibVLC(context,args);
         mMediaPlayer = new MediaPlayer(mLibVLC);
-        mMediaPlayer.setEventListener(new MediaPlayer.EventListener() {
-            @Override
-            public void onEvent(MediaPlayer.Event event) {
-                switch (event.type) {
+        mMediaPlayer.setEventListener(this::onEvent);
 
-                    case MediaPlayer.Event.EncounteredError:
-                        onError();
-                    case MediaPlayer.Event.EndReached:
-                        onComplete();
-                        break;
-                }
-
-            }
-        });
         mIsInitialized = true;
     }
 
-    private void onError(MediaPlayer.Event event){
+    public void onEvent(MediaPlayer.Event event) {
+        switch (event.type) {
+
+            case MediaPlayer.Event.EncounteredError:
+                onError(this,0,0);
+                break;
+            case MediaPlayer.Event.EndReached:
+                onComplete(this);
+                break;
+            case MediaPlayer.Event.PausableChanged:
+                misPaused = !misPaused;
+
+        }
+
+    }
+    public void onError(MediaPlayerVLC mp, int i, int i2){
         if(mOnErrorListener != null){
-         mOnErrorListener.onError(this,0,0);
+         mOnErrorListener.onError(mp,i,i2);
         }
     }
 
-    private void onComplete(){
+    private void onComplete(MediaPlayerVLC mp){
         if(mOnCompletionListener != null){
-            mOnCompletionListener.onCompletion(this);
+            mOnCompletionListener.onCompletion(mp);
         }
-        // Code from android MediaPlayeer
-        //mOnCompletionInternalListener.onCompletion(mMediaPlayer);
-        OnCompletionListener onCompletionListener = mOnCompletionListener;
-        if (onCompletionListener != null)
-            onCompletionListener.onCompletion(this);
+    }
 
+    public void start(){
+        if(mIsInitialized){
+            mMediaPlayer.play();
+        }
+    }
+
+    public void play(){
+        mMediaPlayer.play();
+    }
+
+    public void pause(){
+        mMediaPlayer.pause();
     }
 
     public void seekTo(long msec) throws IllegalStateException{
@@ -94,15 +124,19 @@ public class MediaPlayerVLC extends android.media.MediaPlayer{
     }
 
     public void reset(){
-        mMedia.release();
-        mMedia = null;
+        if(mMedia != null) {
+            mMedia.release();
+            mMedia = null;
+        }
     }
 
     public void release() {
 
         if(mIsInitialized) {
             mMediaPlayer.release();
-            mMedia.release();
+            if(mMedia != null) {
+                mMedia.release();
+            }
             mLibVLC.release();
         }
 
@@ -125,8 +159,34 @@ public class MediaPlayerVLC extends android.media.MediaPlayer{
     public void setDataSource(String path){
         mMedia = new Media(mLibVLC, path);
         mMediaPlayer.setMedia(mMedia);
+    }
 
-        mMediaPlayer.setEventListener();
+    public void setDataSource(Context context, Uri uri){
 
+        ContentResolver contentResolver = context.getContentResolver();
+        try {
+            AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(uri, "r");
+            mMedia = new Media(mLibVLC, file);
+            mMediaPlayer.setMedia(mMedia);
+            mMediaPlayer.play();
+        }catch (Exception ex){
+            Log.e("t",ex.getMessage());
+        }
+    }
+
+    public int getDuration(){
+        return (int)mMediaPlayer.getLength();
+    }
+
+    public int getCurrentPosition(){
+        return (int)mMediaPlayer.getTime();
+    }
+
+    public void setVolume(float leftVolume, float rightVolume){
+        mMediaPlayer.setVolume((int)(leftVolume*100));
+    }
+
+    public boolean isPlaying(){
+        return mMediaPlayer.isPlaying();
     }
 }

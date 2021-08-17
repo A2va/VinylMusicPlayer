@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import com.poupa.vinylmusicplayer.service.MediaPlayerVLC;
 import android.media.audiofx.AudioEffect;
 import android.net.Uri;
 import android.os.PowerManager;
@@ -20,11 +21,11 @@ import com.poupa.vinylmusicplayer.util.PreferenceUtil;
 /**
  * @author Andrew Neal, Karim Abou Zeid (kabouzeid)
  */
-public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, MediaPlayer.OnCompletionListener {
+public class MultiPlayer implements Playback, MediaPlayerVLC.OnErrorListener, MediaPlayerVLC.OnCompletionListener {
     public static final String TAG = MultiPlayer.class.getSimpleName();
 
-    private MediaPlayer mCurrentMediaPlayer = new MediaPlayer();
-    private MediaPlayer mNextMediaPlayer;
+    private MediaPlayerVLC mCurrentMediaPlayer = new MediaPlayerVLC();
+    private MediaPlayerVLC mNextMediaPlayer;
 
     private final Context context;
     @Nullable
@@ -40,7 +41,8 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
      */
     public MultiPlayer(final Context context) {
         this.context = context;
-        mCurrentMediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
+        //mCurrentMediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
+        mCurrentMediaPlayer.setContext(context);
     }
 
     /**
@@ -66,20 +68,20 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
      * @return True if the <code>player</code> has been prepared and is
      * ready to play, false otherwise
      */
-    private boolean setDataSourceImpl(@NonNull final MediaPlayer player, @NonNull final String path) {
+    private boolean setDataSourceImpl(@NonNull final MediaPlayerVLC player, @NonNull final String path) {
         if (context == null) {
             return false;
         }
         try {
             player.reset();
-            player.setOnPreparedListener(null);
+            //player.setOnPreparedListener(null);
             if (path.startsWith("content://")) {
                 player.setDataSource(context, Uri.parse(path));
             } else {
                 player.setDataSource(path);
             }
-            player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            player.prepare();
+            //player.setAudioStreamType(AudioManager.STREAM_MUSIC);
+            //player.prepare();
         } catch (Exception e) {
             return false;
         }
@@ -105,7 +107,7 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
             return;
         }
         try {
-            mCurrentMediaPlayer.setNextMediaPlayer(null);
+            //mCurrentMediaPlayer.setNextMediaPlayer(null);
         } catch (IllegalArgumentException e) {
             Log.i(TAG, "Next media player is current one, continuing");
         } catch (IllegalStateException e) {
@@ -120,12 +122,13 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
             return;
         }
         if (PreferenceUtil.getInstance().gaplessPlayback()) {
-            mNextMediaPlayer = new MediaPlayer();
-            mNextMediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
-            mNextMediaPlayer.setAudioSessionId(getAudioSessionId());
+            mNextMediaPlayer = new MediaPlayerVLC();
+            mNextMediaPlayer.setContext(context);
+            //mNextMediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
+            //mNextMediaPlayer.setAudioSessionId(getAudioSessionId());
             if (setDataSourceImpl(mNextMediaPlayer, path)) {
                 try {
-                    mCurrentMediaPlayer.setNextMediaPlayer(mNextMediaPlayer);
+                    //mCurrentMediaPlayer.setNextMediaPlayer(mNextMediaPlayer);
                 } catch (@NonNull IllegalArgumentException | IllegalStateException e) {
                     Log.e(TAG, "setNextDataSource: setNextMediaPlayer()", e);
                     if (mNextMediaPlayer != null) {
@@ -279,7 +282,7 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
     @Override
     public boolean setAudioSessionId(final int sessionId) {
         try {
-            mCurrentMediaPlayer.setAudioSessionId(sessionId);
+            //mCurrentMediaPlayer.setAudioSessionId(sessionId);
             return true;
         } catch (@NonNull IllegalArgumentException | IllegalStateException e) {
             e.printStackTrace();
@@ -294,7 +297,8 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
      */
     @Override
     public int getAudioSessionId() {
-        return mCurrentMediaPlayer.getAudioSessionId();
+        //return mCurrentMediaPlayer.getAudioSessionId();
+        return 1;
     }
 
     public void setReplayGain(float replaygain) {
@@ -322,7 +326,7 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
      * {@inheritDoc}
      */
     @Override
-    public boolean onError(final MediaPlayer mp, final int what, final int extra) {
+    public boolean onError(final MediaPlayerVLC mp, final int what, final int extra) {
         if (mp == mCurrentMediaPlayer) {
             if (context != null) {
                 Toast.makeText(context, context.getResources().getString(R.string.unplayable_file), Toast.LENGTH_SHORT).show();
@@ -337,14 +341,16 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
                     callbacks.onTrackWentToNext();
                 }
             } else {
-                mCurrentMediaPlayer = new MediaPlayer();
-                mCurrentMediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
+                mCurrentMediaPlayer = new MediaPlayerVLC();
+                mCurrentMediaPlayer.setContext(context);
+                //mCurrentMediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
             }
         } else {
             mIsInitialized = false;
             mCurrentMediaPlayer.release();
-            mCurrentMediaPlayer = new MediaPlayer();
-            mCurrentMediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
+            mCurrentMediaPlayer = new MediaPlayerVLC();
+            mCurrentMediaPlayer.setContext(context);
+            //mCurrentMediaPlayer.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
             if (context != null) {
                 Toast.makeText(context, context.getResources().getString(R.string.unplayable_file), Toast.LENGTH_SHORT).show();
             }
@@ -356,7 +362,7 @@ public class MultiPlayer implements Playback, MediaPlayer.OnErrorListener, Media
      * {@inheritDoc}
      */
     @Override
-    public void onCompletion(final MediaPlayer mp) {
+    public void onCompletion(final MediaPlayerVLC mp) {
         if (mp == mCurrentMediaPlayer && mNextMediaPlayer != null) {
             mIsInitialized = false;
             mCurrentMediaPlayer.release();
