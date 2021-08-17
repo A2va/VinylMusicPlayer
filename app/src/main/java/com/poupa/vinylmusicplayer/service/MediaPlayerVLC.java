@@ -113,7 +113,7 @@ public class MediaPlayerVLC{
     }
 
     public void seekTo(long msec) throws IllegalStateException{
-         if(mIsInitialized){
+         if(!mIsInitialized){
              final String msg = "No context has been setted, MediaPlayer is null";
              throw new IllegalStateException(msg);
          }
@@ -168,7 +168,6 @@ public class MediaPlayerVLC{
             AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(uri, "r");
             mMedia = new Media(mLibVLC, file);
             mMediaPlayer.setMedia(mMedia);
-            mMediaPlayer.play();
         }catch (Exception ex){
             Log.e("t",ex.getMessage());
         }
