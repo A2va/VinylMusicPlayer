@@ -18,100 +18,141 @@ import android.util.Log;
 import java.util.ArrayList;
 
 public class MediaPlayerVLC{
+
+    public static final String TAG = MediaPlayerVLC.class.getSimpleName();
+    /**
+     * Interface definition of a callback to be invoked when there
+     * has been an error during decoding.
+     */
     public interface OnErrorListener{
+        /**
+         * Called to indicate an error.
+         *
+         * @param mp the MediaPlayer who cause the error
+         * @param what the type of error has occurred
+         * @param extra an extra error code
+         * @return True if the method handled error
+         * */
         boolean onError(MediaPlayerVLC mp, int what, int extra);
     }
+    /**
+     * Interface definition for a callback to be invoked when playback of
+     * a media source has completed.
+     */
     public interface OnCompletionListener{
+        /**
+         * Called when the end of a media source is reached during playback.
+         *
+         * @param mp the MediaPlayer that reached the end of the file
+         * */
         void onCompletion(MediaPlayerVLC mp);
     }
 
-    private LibVLC mLibVLC = null;
-    private MediaPlayer mMediaPlayer = null;
-    private Media mMedia;
-    private boolean misPaused = false;
+    // VLC lib object
+    private LibVLC mLibVLC = null; // LibVLC context
+    private MediaPlayer mMediaPlayer = null; // VLC MediaPlayer
+    private Media mMedia; // A media
 
+    // Listener
     private OnErrorListener mOnErrorListener;
-
     private OnCompletionListener mOnCompletionListener;
 
 
-    private Context mContext;
+    private Context mContext; // The context of the app
     private boolean mIsInitialized;
 
-    /*
-     TODO
-     Method to create:
-     release() : ok
-     setWakeMode(): normally ok because extends
-     reset(): Todo
-     setOnPreparedListener(): normally ok
-     setDataSource(String path): todo
-     setDataSource(context and uri): todo
-     setNextMediaPlayer(MediaPlayer): todo
-     start(): todo
-     reset(): todo
-     setAudioStreamType(): no
-     prepare(): normally no
-     setOnCompletionListener(): ok
-     setOnErrorListener(): ok
+    private String mfilePath = ""; // Actual path file
+    private long mlast_position;
 
-    */
+     //TODO setNextMediaPlayer
 
-    // work like a init method
+    /**
+     * Pass the application context to the player.
+     * Needed to play file.
+     *
+     * @param context
+     * */
     void setContext(Context context){
         mContext = context;
-        // create libvlc and a mediaplayer object from context
+    }
+
+    // temp init rename after refactor
+    private void temp_init(){
         final ArrayList<String> args = new ArrayList<>();
         args.add("-vvv");
-
-        mLibVLC = new LibVLC(context,args);
+        mLibVLC = new LibVLC(mContext,args);
         mMediaPlayer = new MediaPlayer(mLibVLC);
         mMediaPlayer.setEventListener(this::onEvent);
 
         mIsInitialized = true;
+
     }
 
-    public void onEvent(MediaPlayer.Event event) {
+    /**
+     * Called when event occurred in MediaPlayer.
+     *
+     * @param event
+     * */
+    private void onEvent(MediaPlayer.Event event) {
         switch (event.type) {
-
-            case MediaPlayer.Event.EncounteredError:
-                onError(this,0,0);
+            case MediaPlayer.Event.EncounteredError: // Error event
+                if(mOnErrorListener != null){
+                    // Call the listener
+                    // what and extra are now unused
+                    mOnErrorListener.onError(this,0,0);
+                }
                 break;
-            case MediaPlayer.Event.EndReached:
-                onComplete(this);
+            case MediaPlayer.Event.EndReached: // End of file event
+                // Call the listener
+                if(mOnCompletionListener != null){
+                    mOnCompletionListener.onCompletion(this);
+                }
                 break;
-            case MediaPlayer.Event.PausableChanged:
-                misPaused = !misPaused;
-
+            default:
+                break;
         }
 
     }
-    public void onError(MediaPlayerVLC mp, int i, int i2){
-        if(mOnErrorListener != null){
-         mOnErrorListener.onError(mp,i,i2);
-        }
-    }
-
-    private void onComplete(MediaPlayerVLC mp){
-        if(mOnCompletionListener != null){
-            mOnCompletionListener.onCompletion(mp);
-        }
-    }
-
+    /**
+     * If the player has not starting, start from the beginning
+     * else start at the current position.
+     * */
     public void start(){
         if(mIsInitialized){
+            /*if(mfilePath != null && mfile == null){
+                setDataSource(mfilePath);
+            }
+            else if(mfile !=null && mfilePath == null){
+                setDataSource(mContext,mfile);
+            }*/
+
+            //mMediaPlayer.setMedia(mMedia);
+            //mMediaPlayer.setTime(mlast_position);
             mMediaPlayer.play();
         }
     }
 
+    /**
+     * Play the current file.
+     * */
     public void play(){
         mMediaPlayer.play();
     }
 
+    /**
+     * Pause the current file.
+     * */
     public void pause(){
         mMediaPlayer.pause();
     }
 
+    /**
+     * Seeks to specified time position.
+     *
+     * @param msec the offset in milliseconds from the start to seek to
+     * @throws IllegalStateException if the internal player engine has not been
+     * initialized
+     * */
     public void seekTo(long msec) throws IllegalStateException{
          if(!mIsInitialized){
              final String msg = "No context has been setted, MediaPlayer is null";
@@ -123,13 +164,25 @@ public class MediaPlayerVLC{
          }
     }
 
+    /**
+     * Resets the MediaPlayer to its uninitialized state. After calling
+     * this method, you will have to initialize it again by setting the
+     * data source and calling prepare().
+     * */
     public void reset(){
         if(mMedia != null) {
+            mlast_position = mMediaPlayer.getTime();
             mMedia.release();
             mMedia = null;
+            mfilePath = null;
+            mMediaPlayer.stop();
         }
     }
-
+    /**
+     * Releases resources associated with this MediaPlayer object.
+     * It is considered good practice to call this method when you're
+     * done using the MediaPlayer.
+     * */
     public void release() {
 
         if(mIsInitialized) {
@@ -148,22 +201,47 @@ public class MediaPlayerVLC{
 
     }
 
+    /**
+     * Register a callback to be invoked when an error has happened
+     * during decoding.
+     *
+     * @param listener the callback that will be run
+     * */
     public void setOnErrorListener(OnErrorListener listener) {
         mOnErrorListener = listener;
     }
 
+    /**
+     * Register a callback to be invoked when playback of
+     * a media source has completed.
+     *
+     * @param listener the callback that will be run
+     * */
     public void setOnCompletionListener(OnCompletionListener listener) {
         mOnCompletionListener = listener;
     }
 
+    /**
+     * Set file path can be uri string as well.
+     *
+     * @param path
+     * */
     public void setDataSource(String path){
         mMedia = new Media(mLibVLC, path);
         mMediaPlayer.setMedia(mMedia);
+        mIsFileOpen = true;
+        mfilePath = path;
     }
 
+    /**
+     * Set the file with an uri.
+     * The context are not necessary it's here for the compatibility because the
+     * {@link android.media.MediaPlayer} have it.
+     * @param context the application context
+     * @param uri the file uri
+     * */
     public void setDataSource(Context context, Uri uri){
-
-        ContentResolver contentResolver = context.getContentResolver();
+        ContentResolver contentResolver = mContext.getContentResolver();
         try {
             AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(uri, "r");
             mMedia = new Media(mLibVLC, file);
@@ -173,18 +251,42 @@ public class MediaPlayerVLC{
         }
     }
 
+    /**
+     * Returns the duration of the media.
+     *
+     * @return the duration of the media in ms. -1 if there is no media.
+     * */
     public int getDuration(){
         return (int)mMediaPlayer.getLength();
     }
 
+    /**
+     * Returns the current position of the media.
+     *
+     * @return the urrent position of the media in ms. -1 if there is no media.
+     * */
     public int getCurrentPosition(){
         return (int)mMediaPlayer.getTime();
     }
 
+    /**
+     * Sets the volume on this player.
+     *
+     * Again for the compatibility with {@link android.media.MediaPlayer} the left and right volume
+     * are float but only the left are used.
+     *
+     * @param leftVolume
+     * @param rightVolume
+     * */
     public void setVolume(float leftVolume, float rightVolume){
         mMediaPlayer.setVolume((int)(leftVolume*100));
     }
 
+    /**
+     * Checks whether the MediaPlayer is playing.
+     *
+     * @return true if currently playing, false otherwise
+     */
     public boolean isPlaying(){
         return mMediaPlayer.isPlaying();
     }
