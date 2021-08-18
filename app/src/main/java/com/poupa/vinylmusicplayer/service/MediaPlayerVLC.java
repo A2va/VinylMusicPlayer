@@ -62,7 +62,6 @@ public class MediaPlayerVLC{
     private boolean mIsInitialized;
 
     private String mfilePath = ""; // Actual path file
-    private long mlast_position;
 
      //TODO setNextMediaPlayer
 
@@ -74,18 +73,6 @@ public class MediaPlayerVLC{
      * */
     void setContext(Context context){
         mContext = context;
-    }
-
-    // temp init rename after refactor
-    private void temp_init(){
-        final ArrayList<String> args = new ArrayList<>();
-        args.add("-vvv");
-        mLibVLC = new LibVLC(mContext,args);
-        mMediaPlayer = new MediaPlayer(mLibVLC);
-        mMediaPlayer.setEventListener(this::onEvent);
-
-        mIsInitialized = true;
-
     }
 
     /**
@@ -118,6 +105,7 @@ public class MediaPlayerVLC{
      * else start at the current position.
      * */
     public void start(){
+        // TODO
         if(mIsInitialized){
             /*if(mfilePath != null && mfile == null){
                 setDataSource(mfilePath);
@@ -171,7 +159,6 @@ public class MediaPlayerVLC{
      * */
     public void reset(){
         if(mMedia != null) {
-            mlast_position = mMediaPlayer.getTime();
             mMedia.release();
             mMedia = null;
             mfilePath = null;
@@ -202,6 +189,28 @@ public class MediaPlayerVLC{
     }
 
     /**
+     * Prepare the MediaPlayer. Needed to call setDataSource before.
+     * */
+    public void prepare(){
+        // Argument for the LibVLC
+        final ArrayList<String> args = new ArrayList<>();
+        args.add("-vvv"); // Verbose log LibVLC
+        mLibVLC = new LibVLC(mContext,args);
+        mMediaPlayer = new MediaPlayer(mLibVLC);
+        mMediaPlayer.setEventListener(this::onEvent);
+
+        // Get the media from the file path
+        mMedia = getMedia(mfilePath);
+        if(mMedia != null){
+            // Set the media to the media player
+            mMediaPlayer.setMedia(mMedia);
+            mIsInitialized = true;
+        }
+
+
+    }
+
+    /**
      * Register a callback to be invoked when an error has happened
      * during decoding.
      *
@@ -227,9 +236,6 @@ public class MediaPlayerVLC{
      * @param path
      * */
     public void setDataSource(String path){
-        mMedia = new Media(mLibVLC, path);
-        mMediaPlayer.setMedia(mMedia);
-        mIsFileOpen = true;
         mfilePath = path;
     }
 
@@ -241,14 +247,30 @@ public class MediaPlayerVLC{
      * @param uri the file uri
      * */
     public void setDataSource(Context context, Uri uri){
-        ContentResolver contentResolver = mContext.getContentResolver();
-        try {
-            AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(uri, "r");
-            mMedia = new Media(mLibVLC, file);
-            mMediaPlayer.setMedia(mMedia);
-        }catch (Exception ex){
-            Log.e("t",ex.getMessage());
+        // Convert the uri to a string
+        setDataSource(uri.toString());
+    }
+
+    /*
+    * Get a media object from a path.
+    *
+    * @return media from file path
+    * */
+    private Media getMedia(String path){
+        if (path.startsWith("content://")) {
+            ContentResolver contentResolver = mContext.getContentResolver();
+            try {
+                AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(Uri.parse(path), "r");
+                Media media = new Media(mLibVLC, file);
+                return media;
+            }catch (Exception ex){
+                Log.e("t",ex.getMessage());
+            }
+        } else {
+            Media media = new Media(mLibVLC, path);
+            return media;
         }
+        return  null;
     }
 
     /**
