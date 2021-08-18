@@ -59,7 +59,6 @@ public class MediaPlayerVLC{
 
 
     private Context mContext; // The context of the app
-    private boolean mIsInitialized;
 
     private String mfilePath = ""; // Actual path file
 
@@ -104,18 +103,12 @@ public class MediaPlayerVLC{
      * If the player has not starting, start from the beginning
      * else start at the current position.
      * */
-    public void start(){
-        // TODO
-        if(mIsInitialized){
-            /*if(mfilePath != null && mfile == null){
-                setDataSource(mfilePath);
-            }
-            else if(mfile !=null && mfilePath == null){
-                setDataSource(mContext,mfile);
-            }*/
-
-            //mMediaPlayer.setMedia(mMedia);
-            //mMediaPlayer.setTime(mlast_position);
+    public void start() throws IllegalStateException {
+        if(mMediaPlayer == null){
+            final String msg = "Need to call prepare, MediaPlayer is null";
+            throw new IllegalStateException(msg);
+        }
+        if(!mMediaPlayer.isPlaying()){
             mMediaPlayer.play();
         }
     }
@@ -123,14 +116,22 @@ public class MediaPlayerVLC{
     /**
      * Play the current file.
      * */
-    public void play(){
+    public void play() throws IllegalStateException {
+        if(mMediaPlayer == null){
+            final String msg = "Need to call prepare, MediaPlayer is null";
+            throw new IllegalStateException(msg);
+        }
         mMediaPlayer.play();
     }
 
     /**
      * Pause the current file.
      * */
-    public void pause(){
+    public void pause() throws IllegalStateException {
+        if(mMediaPlayer == null){
+            final String msg = "Need to call prepare, MediaPlayer is null";
+            throw new IllegalStateException(msg);
+        }
         mMediaPlayer.pause();
     }
 
@@ -141,9 +142,9 @@ public class MediaPlayerVLC{
      * @throws IllegalStateException if the internal player engine has not been
      * initialized
      * */
-    public void seekTo(long msec) throws IllegalStateException{
-         if(!mIsInitialized){
-             final String msg = "No context has been setted, MediaPlayer is null";
+    public void seekTo(long msec) throws IllegalStateException {
+         if(mLibVLC == null || mMediaPlayer == null){
+             final String msg = "Need to call prepare, MediaPlayer is null";
              throw new IllegalStateException(msg);
          }
          if(mMediaPlayer.setTime(msec) == -1){
@@ -157,12 +158,12 @@ public class MediaPlayerVLC{
      * this method, you will have to initialize it again by setting the
      * data source and calling prepare().
      * */
-    public void reset(){
+    public void reset() {
         if(mMedia != null) {
+            mMediaPlayer.stop();
             mMedia.release();
             mMedia = null;
-            mfilePath = null;
-            mMediaPlayer.stop();
+            mfilePath = ""; // reset the filename
         }
     }
     /**
@@ -172,42 +173,45 @@ public class MediaPlayerVLC{
      * */
     public void release() {
 
-        if(mIsInitialized) {
-            mMediaPlayer.release();
-            if(mMedia != null) {
-                mMedia.release();
-            }
-            mLibVLC.release();
+        if(mMedia != null) {
+            mMedia.release();
+            mMedia = null;
         }
 
-        mMediaPlayer = null;
-        mMedia = null;
+        /*if(mLibVLC != null) {
+            mLibVLC.release();
+            mLibVLC = null;
+        }
 
-        mOnCompletionListener = null;
-        mOnErrorListener = null;
-
+        if(mMediaPlayer != null) {
+            mMediaPlayer.release();
+            mMediaPlayer = null;
+        }*/
     }
 
     /**
      * Prepare the MediaPlayer. Needed to call setDataSource before.
      * */
-    public void prepare(){
-        // Argument for the LibVLC
-        final ArrayList<String> args = new ArrayList<>();
-        args.add("-vvv"); // Verbose log LibVLC
-        mLibVLC = new LibVLC(mContext,args);
-        mMediaPlayer = new MediaPlayer(mLibVLC);
-        mMediaPlayer.setEventListener(this::onEvent);
+    public void prepare() {
+        // Create LibVLC object if doesn't exist
+        if(mLibVLC == null) {
+            // Argument for the LibVLC
+            final ArrayList<String> args = new ArrayList<>();
+            args.add("-vvv"); // Verbose log LibVLC
+            mLibVLC = new LibVLC(mContext, args);
+        }
+
+        if(mMediaPlayer == null) {
+            mMediaPlayer = new MediaPlayer(mLibVLC);
+            mMediaPlayer.setEventListener(this::onEvent);
+        }
 
         // Get the media from the file path
         mMedia = getMedia(mfilePath);
-        if(mMedia != null){
+        if(mMedia != null) {
             // Set the media to the media player
             mMediaPlayer.setMedia(mMedia);
-            mIsInitialized = true;
         }
-
-
     }
 
     /**
@@ -235,7 +239,7 @@ public class MediaPlayerVLC{
      *
      * @param path
      * */
-    public void setDataSource(String path){
+    public void setDataSource(String path) {
         mfilePath = path;
     }
 
@@ -256,7 +260,7 @@ public class MediaPlayerVLC{
     *
     * @return media from file path
     * */
-    private Media getMedia(String path){
+    private Media getMedia(String path) {
         if (path.startsWith("content://")) {
             ContentResolver contentResolver = mContext.getContentResolver();
             try {
@@ -278,7 +282,11 @@ public class MediaPlayerVLC{
      *
      * @return the duration of the media in ms. -1 if there is no media.
      * */
-    public int getDuration(){
+    public int getDuration() throws IllegalStateException {
+        if(mMediaPlayer == null){
+            final String msg = "Need to call prepare, MediaPlayer is null";
+            throw new IllegalStateException(msg);
+        }
         return (int)mMediaPlayer.getLength();
     }
 
@@ -287,7 +295,11 @@ public class MediaPlayerVLC{
      *
      * @return the urrent position of the media in ms. -1 if there is no media.
      * */
-    public int getCurrentPosition(){
+    public int getCurrentPosition() throws IllegalStateException {
+        if(mMediaPlayer == null){
+            final String msg = "Need to call prepare, MediaPlayer is null";
+            throw new IllegalStateException(msg);
+        }
         return (int)mMediaPlayer.getTime();
     }
 
@@ -300,7 +312,11 @@ public class MediaPlayerVLC{
      * @param leftVolume
      * @param rightVolume
      * */
-    public void setVolume(float leftVolume, float rightVolume){
+    public void setVolume(float leftVolume, float rightVolume) {
+        if(mMediaPlayer == null){
+            final String msg = "Need to call prepare, MediaPlayer is null";
+            throw new IllegalStateException(msg);
+        }
         mMediaPlayer.setVolume((int)(leftVolume*100));
     }
 
@@ -309,7 +325,10 @@ public class MediaPlayerVLC{
      *
      * @return true if currently playing, false otherwise
      */
-    public boolean isPlaying(){
-        return mMediaPlayer.isPlaying();
+    public boolean isPlaying() {
+        if(mMediaPlayer != null) {
+            return mMediaPlayer.isPlaying();
+        }
+        return false;
     }
 }
