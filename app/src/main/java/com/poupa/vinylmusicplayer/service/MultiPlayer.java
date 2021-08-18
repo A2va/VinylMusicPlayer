@@ -81,7 +81,7 @@ public class MultiPlayer implements Playback, MediaPlayerVLC.OnErrorListener, Me
                 player.setDataSource(path);
             }
             //player.setAudioStreamType(AudioManager.STREAM_MUSIC);
-            //player.prepare();
+            player.prepare();
         } catch (Exception e) {
             return false;
         }
