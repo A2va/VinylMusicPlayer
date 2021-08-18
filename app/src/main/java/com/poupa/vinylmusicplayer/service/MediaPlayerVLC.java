@@ -1,23 +1,30 @@
 package com.poupa.vinylmusicplayer.service;
 
+import org.videolan.libvlc.FactoryManager;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.LibVLC;
-import org.videolan.libvlc.MediaFactory;
+import org.videolan.libvlc.util.Dumper;
 
 import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.Context;
-
+import org.videolan.libvlc.MediaFactory;
+import org.videolan.libvlc.interfaces.IMediaFactory;
 //import android.media.MediaPlayer.OnErrorListener;
 import android.content.res.AssetFileDescriptor;
+import android.database.Cursor;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 import android.util.Log;
 
+import java.io.FileDescriptor;
+import java.io.IOException;
 import java.util.ArrayList;
 
-public class MediaPlayerVLC{
+public class MediaPlayerVLC {
 
     public static final String TAG = MediaPlayerVLC.class.getSimpleName();
     /**
@@ -52,6 +59,8 @@ public class MediaPlayerVLC{
     private LibVLC mLibVLC = null; // LibVLC context
     private MediaPlayer mMediaPlayer = null; // VLC MediaPlayer
     private Media mMedia; // A media
+
+    private MediaFactory mediaFactory = new MediaFactory();
 
     // Listener
     private OnErrorListener mOnErrorListener;
@@ -97,6 +106,10 @@ public class MediaPlayerVLC{
             default:
                 break;
         }
+
+    }
+
+    private void onFinish(boolean suc){
 
     }
     /**
@@ -164,6 +177,7 @@ public class MediaPlayerVLC{
             mMedia.release();
             mMedia = null;
             mfilePath = ""; // reset the filename
+            release();
         }
     }
     /**
@@ -193,6 +207,7 @@ public class MediaPlayerVLC{
      * Prepare the MediaPlayer. Needed to call setDataSource before.
      * */
     public void prepare() {
+
         // Create LibVLC object if doesn't exist
         if(mLibVLC == null) {
             // Argument for the LibVLC
@@ -209,6 +224,7 @@ public class MediaPlayerVLC{
         // Get the media from the file path
         mMedia = getMedia(mfilePath);
         if(mMedia != null) {
+            mMediaPlayer.stop();
             // Set the media to the media player
             mMediaPlayer.setMedia(mMedia);
         }
@@ -255,6 +271,14 @@ public class MediaPlayerVLC{
         setDataSource(uri.toString());
     }
 
+    /**
+     * Create media object from a file descriptor
+     * @param file
+     * */
+    private Media setDataSource(FileDescriptor file){
+        return new Media(mLibVLC, file);
+    }
+
     /*
     * Get a media object from a path.
     *
@@ -265,16 +289,36 @@ public class MediaPlayerVLC{
             ContentResolver contentResolver = mContext.getContentResolver();
             try {
                 AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(Uri.parse(path), "r");
-                Media media = new Media(mLibVLC, file);
-                return media;
+                return  new Media(mLibVLC, file);
+
+
+                // VLC Android code
+                /*Uri uri = null;
+                Cursor cursor = contentResolver.query(Uri.parse(path), new String[] {MediaStore.Audio.Media.DATA}, null, null, null);
+                int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
+
+                if (cursor.moveToFirst()){
+                    uri = Uri.parse(cursor.getString(columnIndex));
+                    if (uri.getScheme() == null)
+                        throw new IllegalArgumentException("location has no scheme");
+                }
+                else{
+                    uri = Uri.parse(path);
+                }
+
+                if(uri != null){
+                    return new Media(mLibVLC, uri);
+                }*/
+
             }catch (Exception ex){
-                Log.e("t",ex.getMessage());
+                ex.printStackTrace();
             }
+
         } else {
-            Media media = new Media(mLibVLC, path);
-            return media;
+            return new Media(mLibVLC, path);
         }
-        return  null;
+        
+        return null;
     }
 
     /**
