@@ -4,9 +4,9 @@ import org.videolan.libvlc.FactoryManager;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.LibVLC;
-import org.videolan.libvlc.util.Dumper;
+import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.libvlc.util.HWDecoderUtil;
-
+import org.videolan.libvlc.util.HWDecoderUtil.AudioOutput;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
@@ -57,9 +57,8 @@ public class MediaPlayerVLC {
     private MediaPlayer mMediaPlayer = null; // VLC MediaPlayer
     private Media mMedia; // A media
 
-    private final int AOUT_AUDIOTRACK = 0;
-    private final int AOUT_OPENSLES = 1;
-    
+    private AudioOutput mAout = AudioOutput.AUDIOTRACK;
+
     // Listener
     private OnErrorListener mOnErrorListener;
     private OnCompletionListener mOnCompletionListener;
@@ -81,10 +80,11 @@ public class MediaPlayerVLC {
         mContext = context;
     }
 
-    private void setAout(int aout){
-        HWDecoderUtil.AudioOutput hwaout = HWDecoderUtil.getAudioOutputFromDevice();
-        if (hwaout == HWDecoderUtil.AudioOutput.AUDIOTRACK || hwaout == HWDecoderUtil.AudioOutput.OPENSLES){
-            if(aout == HWDecoderUtil.AudioOutput.OPENSLES){
+    public void setAout(AudioOutput aout){
+        mAout = aout;
+        AudioOutput hwaout = HWDecoderUtil.getAudioOutputFromDevice();
+        if (hwaout == AudioOutput.AUDIOTRACK || hwaout == AudioOutput.OPENSLES){
+            if(hwaout == AudioOutput.OPENSLES){
                 mMediaPlayer.setAudioOutput("opensles_android");
                 return;
             }
@@ -183,7 +183,6 @@ public class MediaPlayerVLC {
             mMedia.release();
             mMedia = null;
             mfilePath = ""; // reset the filename
-            release();
         }
     }
     /**
@@ -198,7 +197,7 @@ public class MediaPlayerVLC {
             mMedia = null;
         }
 
-        /*if(mLibVLC != null) {
+        if(mLibVLC != null) {
             mLibVLC.release();
             mLibVLC = null;
         }
@@ -206,7 +205,7 @@ public class MediaPlayerVLC {
         if(mMediaPlayer != null) {
             mMediaPlayer.release();
             mMediaPlayer = null;
-        }*/
+        }
     }
 
     /**
@@ -218,6 +217,8 @@ public class MediaPlayerVLC {
         if(mLibVLC == null) {
             // Argument for the LibVLC
             final ArrayList<String> args = new ArrayList<>();
+            // All args are documented here:
+            // https://wiki.videolan.org/VLC_command-line_help/
             args.add("-vvv"); // Verbose log LibVLC
             mLibVLC = new LibVLC(mContext, args);
         }
@@ -292,11 +293,12 @@ public class MediaPlayerVLC {
     * */
     private Media getMedia(String path) {
         if (path.startsWith("content://")) {
+            Uri uri = Uri.parse(path);
             ContentResolver contentResolver = mContext.getContentResolver();
             try {
                 // Old code
                 // When the app is opened for the first time, player is unable to resume the actual
-                // music but if the music is changed or resume secon time it worked.
+                // music but if the music is changed or resume second time it worked.
                 /*AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(Uri.parse(path), "r");
                 return  new Media(mLibVLC, file);*/
 
