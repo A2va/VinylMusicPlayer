@@ -297,19 +297,17 @@ public class MediaPlayerVLC {
                 return  new Media(mLibVLC, file);*/
 
                 // From the VLC android code
-                Cursor cursor = contentResolver.query(Uri.parse(path), new String[] {MediaStore.Audio.Media.DATA}, null, null, null);
+                Cursor cursor = contentResolver.query(uri, new String[] {MediaStore.Audio.Media.DATA}, null, null, null);
                 int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
 
-                // If cursur is not empty
+                // If cursor is not empty
                 if (cursor.moveToFirst()){
-                    /*uri = Uri.parse(cursor.getString(columnIndex));
-                    if (uri.getScheme() == null)
-                        throw new IllegalArgumentException("location has no scheme");*/
                     return new Media(mLibVLC, cursor.getString(columnIndex));
                 }
                 else{
-                    // Try the uri as normal
-                    return new Media(mLibVLC, Uri.parse(path));
+                    // Try the uri with AssetFileDescriptor
+                    AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(uri, "r");
+                    return new Media(mLibVLC, file);
                 }
 
             }catch (Exception ex){
