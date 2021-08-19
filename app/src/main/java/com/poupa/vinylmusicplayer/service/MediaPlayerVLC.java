@@ -5,6 +5,7 @@ import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.util.Dumper;
+import org.videolan.libvlc.util.HWDecoderUtil;
 
 import android.content.ContentResolver;
 import android.content.Context;
@@ -56,6 +57,9 @@ public class MediaPlayerVLC {
     private MediaPlayer mMediaPlayer = null; // VLC MediaPlayer
     private Media mMedia; // A media
 
+    private final int AOUT_AUDIOTRACK = 0;
+    private final int AOUT_OPENSLES = 1;
+    
     // Listener
     private OnErrorListener mOnErrorListener;
     private OnCompletionListener mOnCompletionListener;
