@@ -288,27 +288,27 @@ public class MediaPlayerVLC {
         if (path.startsWith("content://")) {
             ContentResolver contentResolver = mContext.getContentResolver();
             try {
-                AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(Uri.parse(path), "r");
-                return  new Media(mLibVLC, file);
+                // Old code
+                // When the app is opened for the first time, player is unable to resume the actual
+                // music but if the music is changed or resume secon time it worked.
+                /*AssetFileDescriptor file = contentResolver.openAssetFileDescriptor(Uri.parse(path), "r");
+                return  new Media(mLibVLC, file);*/
 
-
-                // VLC Android code
-                /*Uri uri = null;
+                // From the VLC android code
                 Cursor cursor = contentResolver.query(Uri.parse(path), new String[] {MediaStore.Audio.Media.DATA}, null, null, null);
                 int columnIndex = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA);
 
+                // If cursur is not empty
                 if (cursor.moveToFirst()){
-                    uri = Uri.parse(cursor.getString(columnIndex));
+                    /*uri = Uri.parse(cursor.getString(columnIndex));
                     if (uri.getScheme() == null)
-                        throw new IllegalArgumentException("location has no scheme");
+                        throw new IllegalArgumentException("location has no scheme");*/
+                    return new Media(mLibVLC, cursor.getString(columnIndex));
                 }
                 else{
-                    uri = Uri.parse(path);
+                    // Try the uri as normal
+                    return new Media(mLibVLC, Uri.parse(path));
                 }
-
-                if(uri != null){
-                    return new Media(mLibVLC, uri);
-                }*/
 
             }catch (Exception ex){
                 ex.printStackTrace();
@@ -317,7 +317,7 @@ public class MediaPlayerVLC {
         } else {
             return new Media(mLibVLC, path);
         }
-        
+
         return null;
     }
 
