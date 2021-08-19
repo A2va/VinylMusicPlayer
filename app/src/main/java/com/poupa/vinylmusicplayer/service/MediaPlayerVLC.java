@@ -6,12 +6,8 @@ import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.util.Dumper;
 
-import android.content.ContentProvider;
 import android.content.ContentResolver;
 import android.content.Context;
-import org.videolan.libvlc.MediaFactory;
-import org.videolan.libvlc.interfaces.IMediaFactory;
-//import android.media.MediaPlayer.OnErrorListener;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.media.MediaPlayer.OnCompletionListener;
@@ -60,8 +56,6 @@ public class MediaPlayerVLC {
     private MediaPlayer mMediaPlayer = null; // VLC MediaPlayer
     private Media mMedia; // A media
 
-    private MediaFactory mediaFactory = new MediaFactory();
-
     // Listener
     private OnErrorListener mOnErrorListener;
     private OnCompletionListener mOnCompletionListener;
@@ -81,6 +75,17 @@ public class MediaPlayerVLC {
      * */
     void setContext(Context context){
         mContext = context;
+    }
+
+    private void setAout(int aout){
+        HWDecoderUtil.AudioOutput hwaout = HWDecoderUtil.getAudioOutputFromDevice();
+        if (hwaout == HWDecoderUtil.AudioOutput.AUDIOTRACK || hwaout == HWDecoderUtil.AudioOutput.OPENSLES){
+            if(aout == HWDecoderUtil.AudioOutput.OPENSLES){
+                mMediaPlayer.setAudioOutput("opensles_android");
+                return;
+            }
+            mMediaPlayer.setAudioOutput("android_audiotrack");
+        }
     }
 
     /**
@@ -109,9 +114,6 @@ public class MediaPlayerVLC {
 
     }
 
-    private void onFinish(boolean suc){
-
-    }
     /**
      * If the player has not starting, start from the beginning
      * else start at the current position.
