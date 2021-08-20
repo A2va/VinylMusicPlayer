@@ -153,25 +153,6 @@ public class MediaPlayerVLC {
     }
 
     /**
-     * Seeks to specified time position.
-     *
-     * @param msec the offset in milliseconds from the start to seek to
-     * @throws IllegalStateException if the internal player engine has not been
-     * initialized
-     * */
-    public void seekTo(int msec) throws IllegalStateException {
-         if(mLibVLC == null || mMediaPlayer == null){
-             final String msg = "Need to call prepare, MediaPlayer is null";
-             throw new IllegalStateException(msg);
-         }
-         if(mMediaPlayer.setTime(msec) == -1){
-             final String msg = "No media has been setted";
-             throw new IllegalStateException(msg);
-         }
-        mCurrentpos = msec;
-    }
-
-    /**
      * Resets the MediaPlayer to its uninitialized state. After calling
      * this method, you will have to initialize it again by setting the
      * data source and calling prepare().
@@ -325,6 +306,25 @@ public class MediaPlayerVLC {
         return null;
     }
 
+    /**
+     * Seeks to specified time position.
+     *
+     * @param msec the offset in milliseconds from the start to seek to
+     * @throws IllegalStateException if the internal player engine has not been
+     * initialized
+     * */
+    public void seekTo(int msec) throws IllegalStateException {
+        if(mLibVLC == null || mMediaPlayer == null){
+            final String msg = "Need to call prepare, MediaPlayer is null";
+            throw new IllegalStateException(msg);
+        }
+        if(mMediaPlayer.setTime(msec) == -1){
+            final String msg = "No media has been setted";
+            throw new IllegalStateException(msg);
+        }
+        mCurrentpos = msec;
+    }
+    
     /**
      * Returns the duration of the media.
      *
