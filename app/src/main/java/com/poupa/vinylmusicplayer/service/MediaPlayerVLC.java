@@ -1,24 +1,18 @@
 package com.poupa.vinylmusicplayer.service;
 
-import org.videolan.libvlc.FactoryManager;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.LibVLC;
-import org.videolan.libvlc.util.AndroidUtil;
 import org.videolan.libvlc.util.HWDecoderUtil;
 import org.videolan.libvlc.util.HWDecoderUtil.AudioOutput;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
-import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
-import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import java.io.FileDescriptor;
-import java.io.IOException;
 import java.util.ArrayList;
 
 public class MediaPlayerVLC {
@@ -68,6 +62,7 @@ public class MediaPlayerVLC {
 
     private String mfilePath = ""; // Actual path file
 
+    private int mCurrentpos; // in msec
      //TODO setNextMediaPlayer
 
     /**
@@ -111,6 +106,9 @@ public class MediaPlayerVLC {
                 if(mOnCompletionListener != null){
                     mOnCompletionListener.onCompletion(this);
                 }
+                break;
+            case MediaPlayer.Event.PositionChanged:
+                mCurrentpos = (int)mMediaPlayer.getTime(); // Track the current position
                 break;
             default:
                 break;
@@ -161,7 +159,7 @@ public class MediaPlayerVLC {
      * @throws IllegalStateException if the internal player engine has not been
      * initialized
      * */
-    public void seekTo(long msec) throws IllegalStateException {
+    public void seekTo(int msec) throws IllegalStateException {
          if(mLibVLC == null || mMediaPlayer == null){
              final String msg = "Need to call prepare, MediaPlayer is null";
              throw new IllegalStateException(msg);
@@ -170,6 +168,7 @@ public class MediaPlayerVLC {
              final String msg = "No media has been setted";
              throw new IllegalStateException(msg);
          }
+        mCurrentpos = msec;
     }
 
     /**
@@ -234,6 +233,13 @@ public class MediaPlayerVLC {
             mMediaPlayer.stop();
             // Set the media to the media player
             mMediaPlayer.setMedia(mMedia);
+            // Very hacky to enable seeking
+            // Apparently seeking is not functional before playing
+            // TODO Maybe post an issue on vlc android gitlab or find an other way
+            mMediaPlayer.play();
+            mMediaPlayer.pause();
+            seekTo(0);
+            mCurrentpos = 0;
         }
     }
 
@@ -276,14 +282,6 @@ public class MediaPlayerVLC {
     public void setDataSource(Context context, Uri uri){
         // Convert the uri to a string
         setDataSource(uri.toString());
-    }
-
-    /**
-     * Create media object from a file descriptor
-     * @param file
-     * */
-    private Media setDataSource(FileDescriptor file){
-        return new Media(mLibVLC, file);
     }
 
     /*
@@ -350,7 +348,8 @@ public class MediaPlayerVLC {
             final String msg = "Need to call prepare, MediaPlayer is null";
             throw new IllegalStateException(msg);
         }
-        return (int)mMediaPlayer.getTime();
+        //return (int)mMediaPlayer.getTime();
+        return  mCurrentpos;
     }
 
     /**
