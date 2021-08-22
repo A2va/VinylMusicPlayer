@@ -63,7 +63,6 @@ public class MediaPlayerVLC {
     private String mfilePath = ""; // Actual path file
 
     private int mCurrentpos; // in msec
-     //TODO setNextMediaPlayer
 
     private MediaPlayerVLC mNextMediaPlayer = null;
 
@@ -77,7 +76,6 @@ public class MediaPlayerVLC {
         mContext = context;
     }
 
-    public void setAout(AudioOutput aout){
     public void setAudioOutput(AudioOutput aout){
         mAout = aout;
         if(mAout == AudioOutput.OPENSLES){
