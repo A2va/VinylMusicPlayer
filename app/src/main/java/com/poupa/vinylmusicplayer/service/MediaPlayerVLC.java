@@ -76,15 +76,13 @@ public class MediaPlayerVLC {
     }
 
     public void setAout(AudioOutput aout){
+    public void setAudioOutput(AudioOutput aout){
         mAout = aout;
-        AudioOutput hwaout = HWDecoderUtil.getAudioOutputFromDevice();
-        if (hwaout == AudioOutput.AUDIOTRACK || hwaout == AudioOutput.OPENSLES){
-            if(hwaout == AudioOutput.OPENSLES){
-                mMediaPlayer.setAudioOutput("opensles_android");
-                return;
-            }
-            mMediaPlayer.setAudioOutput("android_audiotrack");
+        if(mAout == AudioOutput.OPENSLES){
+            mMediaPlayer.setAudioOutput("opensles_android");
+            return;
         }
+        mMediaPlayer.setAudioOutput("android_audiotrack");
     }
 
     /**
@@ -324,7 +322,7 @@ public class MediaPlayerVLC {
         }
         mCurrentpos = msec;
     }
-    
+
     /**
      * Returns the duration of the media.
      *
