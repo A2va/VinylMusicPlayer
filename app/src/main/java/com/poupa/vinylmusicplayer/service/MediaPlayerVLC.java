@@ -65,6 +65,8 @@ public class MediaPlayerVLC {
     private int mCurrentpos; // in msec
      //TODO setNextMediaPlayer
 
+    private MediaPlayerVLC mNextMediaPlayer = null;
+
     /**
      * Pass the application context to the player.
      * Needed to play file.
@@ -100,6 +102,10 @@ public class MediaPlayerVLC {
                 }
                 break;
             case MediaPlayer.Event.EndReached: // End of file event
+                // Start the next media player
+                if(mNextMediaPlayer != null){
+                    mNextMediaPlayer.start();
+                }
                 // Call the listener
                 if(mOnCompletionListener != null){
                     mOnCompletionListener.onCompletion(this);
@@ -261,6 +267,14 @@ public class MediaPlayerVLC {
     public void setDataSource(Context context, Uri uri){
         // Convert the uri to a string
         setDataSource(uri.toString());
+    }
+
+    /**
+     * Set the next media player you want to play.
+     * @param mp the next media player
+     * */
+    public void setNextMediaPlayer(MediaPlayerVLC mp){
+        mNextMediaPlayer = mp;
     }
 
     /*
