@@ -128,7 +128,7 @@ public class MultiPlayer implements Playback, MediaPlayerVLC.OnErrorListener, Me
             //mNextMediaPlayer.setAudioSessionId(getAudioSessionId());
             if (setDataSourceImpl(mNextMediaPlayer, path)) {
                 try {
-                    //mCurrentMediaPlayer.setNextMediaPlayer(mNextMediaPlayer);
+                    mCurrentMediaPlayer.setNextMediaPlayer(mNextMediaPlayer);
                 } catch (@NonNull IllegalArgumentException | IllegalStateException e) {
                     Log.e(TAG, "setNextDataSource: setNextMediaPlayer()", e);
                     if (mNextMediaPlayer != null) {
