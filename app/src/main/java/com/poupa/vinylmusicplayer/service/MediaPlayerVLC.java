@@ -85,6 +85,29 @@ public class MediaPlayerVLC {
         mMediaPlayer.setAudioOutput("android_audiotrack");
     }
 
+    public void setAudioSessionId(int sessionId){
+        // C++ implementation
+        /*if (!(mCurrentState & MEDIA_PLAYER_IDLE)) {
+            ALOGE("setAudioSessionId called in state %d", mCurrentState);
+            return INVALID_OPERATION;
+        }
+        if (sessionId < 0) {
+            return BAD_VALUE;
+        }
+        if (sessionId != mAudioSessionId) {
+            AudioSystem::acquireAudioSessionId(sessionId, (pid_t)-1, (uid_t)-1);
+            AudioSystem::releaseAudioSessionId(mAudioSessionId, (pid_t)-1);
+            mAudioSessionId = sessionId;
+        }*/
+
+
+
+    }
+
+    public int getAudioSessionId(){
+        return  1;
+    }
+
     /**
      * Called when event occurred in MediaPlayer.
      *
