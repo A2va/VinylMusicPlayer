@@ -3,15 +3,18 @@ package com.poupa.vinylmusicplayer.service;
 import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.LibVLC;
-import org.videolan.libvlc.util.HWDecoderUtil;
 import org.videolan.libvlc.util.HWDecoderUtil.AudioOutput;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
+import android.media.audiofx.AudioEffect;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
-import android.util.Log;
+import android.media.audiofx.Equalizer;
+import android.media.AudioManager;
+import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 
@@ -58,6 +61,9 @@ public class MediaPlayerVLC {
     private OnCompletionListener mOnCompletionListener;
 
 
+    private Equalizer mEqualizer =  null;
+    private int mAudioSessionId;
+
     private Context mContext; // The context of the app
 
     private String mfilePath = ""; // Actual path file
@@ -86,6 +92,14 @@ public class MediaPlayerVLC {
     }
 
     public void setAudioSessionId(int sessionId){
+
+        if(sessionId < 0){
+            return;
+        }
+
+        if(sessionId != mAudioSessionId){
+            mAudioSessionId = sessionId;
+        }
         // C++ implementation
         /*if (!(mCurrentState & MEDIA_PLAYER_IDLE)) {
             ALOGE("setAudioSessionId called in state %d", mCurrentState);
@@ -99,13 +113,10 @@ public class MediaPlayerVLC {
             AudioSystem::releaseAudioSessionId(mAudioSessionId, (pid_t)-1);
             mAudioSessionId = sessionId;
         }*/
-
-
-
     }
 
     public int getAudioSessionId(){
-        return  1;
+        return  mAudioSessionId;
     }
 
     /**
@@ -195,6 +206,7 @@ public class MediaPlayerVLC {
      * It is considered good practice to call this method when you're
      * done using the MediaPlayer.
      * */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     public void release() {
 
         if(mMedia != null) {
@@ -210,6 +222,13 @@ public class MediaPlayerVLC {
         if(mMediaPlayer != null) {
             mMediaPlayer.release();
             mMediaPlayer = null;
+        }
+
+        if(mEqualizer != null){
+            AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+            mAudioSessionId = audioManager.generateAudioSessionId();
+            mEqualizer =  new Equalizer(1,mAudioSessionId);
+            //mEqualizer.setParameterListener(this);
         }
     }
 

@@ -297,8 +297,7 @@ public class MultiPlayer implements Playback, MediaPlayerVLC.OnErrorListener, Me
      */
     @Override
     public int getAudioSessionId() {
-        //return mCurrentMediaPlayer.getAudioSessionId();
-        return 1;
+        return mCurrentMediaPlayer.getAudioSessionId();
     }
 
     public void setReplayGain(float replaygain) {
