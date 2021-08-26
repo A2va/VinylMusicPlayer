@@ -14,11 +14,13 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.media.audiofx.Equalizer;
 import android.media.AudioManager;
+import android.util.Log;
+
 import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 
-public class MediaPlayerVLC {
+public class MediaPlayerVLC implements Equalizer.OnParameterChangeListener {
 
     public static final String TAG = MediaPlayerVLC.class.getSimpleName();
     /**
@@ -71,6 +73,10 @@ public class MediaPlayerVLC {
     private int mCurrentpos; // in msec
 
     private MediaPlayerVLC mNextMediaPlayer = null;
+
+    public void onParameterChange(Equalizer effect, int status, int param1, int param2, int value){
+        Log.e(TAG, "Equalizer value changed");
+    }
 
     /**
      * Pass the application context to the player.
@@ -228,7 +234,8 @@ public class MediaPlayerVLC {
             AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
             mAudioSessionId = audioManager.generateAudioSessionId();
             mEqualizer =  new Equalizer(1,mAudioSessionId);
-            //mEqualizer.setParameterListener(this);
+            mEqualizer.setParameterListener(this);
+
         }
     }
 
