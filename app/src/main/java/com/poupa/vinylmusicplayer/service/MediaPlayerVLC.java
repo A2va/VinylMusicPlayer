@@ -4,23 +4,30 @@ import org.videolan.libvlc.Media;
 import org.videolan.libvlc.MediaPlayer;
 import org.videolan.libvlc.LibVLC;
 import org.videolan.libvlc.util.HWDecoderUtil.AudioOutput;
+
+import android.content.BroadcastReceiver;
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.res.AssetFileDescriptor;
 import android.database.Cursor;
 import android.media.audiofx.AudioEffect;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.media.audiofx.Equalizer;
 import android.media.AudioManager;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 
-public class MediaPlayerVLC implements Equalizer.OnParameterChangeListener {
+public class MediaPlayerVLC{
 
     public static final String TAG = MediaPlayerVLC.class.getSimpleName();
     /**
@@ -62,8 +69,6 @@ public class MediaPlayerVLC implements Equalizer.OnParameterChangeListener {
     private OnErrorListener mOnErrorListener;
     private OnCompletionListener mOnCompletionListener;
 
-
-    private Equalizer mEqualizer =  null;
     private int mAudioSessionId;
 
     private Context mContext; // The context of the app
@@ -74,9 +79,10 @@ public class MediaPlayerVLC implements Equalizer.OnParameterChangeListener {
 
     private MediaPlayerVLC mNextMediaPlayer = null;
 
-    public void onParameterChange(Equalizer effect, int status, int param1, int param2, int value){
-        Log.e(TAG, "Equalizer value changed");
-    }
+    @Nullable
+    private BroadcastReceiver mBroadcastReceiver;
+    @Nullable
+    private IntentFilter mIntentFilter;
 
     /**
      * Pass the application context to the player.
@@ -84,9 +90,53 @@ public class MediaPlayerVLC implements Equalizer.OnParameterChangeListener {
      *
      * @param context
      * */
-    void setContext(Context context){
+    public void setContext(Context context){
         mContext = context;
+        createIntents();
     }
+
+
+    /**
+     * Create the intents. It's used call method when an event
+     * occurred (in this case when am USB device is connected or disconnected)
+     * */
+    private void createIntents() {
+        // Create the broadcast receiver
+        mBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(@NonNull Context context, @NonNull Intent intent) {
+                String action = intent.getAction();
+                if (action != null) {
+                    Bundle bundle = intent.getExtras();
+                    if (bundle != null) {
+                        for (String key : bundle.keySet()) {
+                            Log.e(TAG, key + " : " + (bundle.get(key) != null ? bundle.get(key) : "NULL"));
+                        }
+                    }
+                    switch (action) {
+                        case AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION:
+                            Log.e(TAG, "Opened the equalizer");
+                            break;
+                        case AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION:
+                            Log.e(TAG, "Closed the equalizer");
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        };
+
+
+        // Create the intent filter
+        mIntentFilter = new IntentFilter();
+        // Add all the action
+        mIntentFilter.addAction(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION);
+        mIntentFilter.addAction(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION);
+        // Register the broadcast
+        mContext.registerReceiver(mBroadcastReceiver, mIntentFilter);
+    }
+
 
     public void setAudioOutput(AudioOutput aout){
         mAout = aout;
@@ -230,13 +280,6 @@ public class MediaPlayerVLC implements Equalizer.OnParameterChangeListener {
             mMediaPlayer = null;
         }
 
-        if(mEqualizer != null){
-            AudioManager audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
-            mAudioSessionId = audioManager.generateAudioSessionId();
-            mEqualizer =  new Equalizer(1,mAudioSessionId);
-            mEqualizer.setParameterListener(this);
-
-        }
     }
 
     /**
